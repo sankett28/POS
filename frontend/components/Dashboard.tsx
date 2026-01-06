@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler } from 'chart.js'
 import { Line, Pie } from 'react-chartjs-2'
 import { IndianRupee, Package, Users, TrendingUp, Sparkles, AlertCircle, Calendar, Download, MoreVertical, ChevronDown, Check } from 'lucide-react'
+import ExportReportModal from './ExportReportModal'
 
 ChartJS.register(
   CategoryScale,
@@ -21,6 +22,7 @@ ChartJS.register(
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('Today')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const periods = ['Today', 'This Week', 'This Month']
@@ -166,7 +168,10 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          <button className="bg-primary text-secondary border-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-md text-sm sm:text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all hover:bg-primary-light hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg relative overflow-hidden w-full sm:w-auto">
+          <button 
+            onClick={() => setIsExportModalOpen(true)}
+            className="bg-primary text-secondary border-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-md text-sm sm:text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all hover:bg-primary-light hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg relative overflow-hidden w-full sm:w-auto"
+          >
             <Download className="w-4 h-4 sm:w-5 sm:h-5" />
             Export Report
           </button>
@@ -314,6 +319,13 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Export Report Modal */}
+      <ExportReportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        selectedPeriod={selectedPeriod}
+      />
     </section>
   )
 }
