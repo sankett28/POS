@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException
-from typing import Optional
+from fastapi import APIRouter
 from app.modules.inventory.service import InventoryService
 
 router = APIRouter()
@@ -7,10 +6,15 @@ service = InventoryService()
 
 @router.get("/")
 async def get_inventory():
-    """Get inventory data"""
+    """Get current inventory status"""
     return await service.get_inventory()
 
-@router.post("/")
-async def update_inventory(request: dict):
-    """Update inventory"""
-    return await service.update_inventory(request)
+@router.post("/stock-in")
+async def add_stock(request: dict):
+    """Add stock to inventory (STOCK IN)"""
+    return await service.add_stock(request)
+
+@router.post("/adjust")
+async def adjust_stock(request: dict):
+    """Adjust stock (for corrections)"""
+    return await service.adjust_stock(request)
