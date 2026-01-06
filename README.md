@@ -1,105 +1,111 @@
-# Retail Boss - Next.js Application
+# Retail Boss Application
 
-AI-Powered Retail Management System for Indian Kirana Stores & Cafes, built with Next.js, TypeScript, and Tailwind CSS.
+This is the monorepo for the Retail Boss application, an AI-Powered Retail Management System for Indian Kirana Stores & Cafes. It consists of a Next.js frontend and a FastAPI (Python) backend.
 
-## Features
+## Table of Contents
 
-- 📊 **Dashboard**: Real-time insights and KPIs
-- 📦 **Inventory Management**: AI-powered stock tracking & forecasting
-- 🧾 **Billing**: GST-compliant instant invoicing
-- 🎤 **Voice AI**: Multi-language voice assistant (Hindi, Tamil, Telugu, English)
-- 📈 **Analytics**: Demand forecasting & business insights
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+- [Architecture](#architecture)
+- [Features](#features)
+- [License](#license)
 
-## Tech Stack
+## Overview
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Charts**: Chart.js with react-chartjs-2
-- **Icons**: Lucide React
-- **Backend**: Next.js API Routes
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-
-### Installation
-
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Run the development server:
-```bash
-npm run dev
-```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+Retail Boss aims to revolutionize retail management for small and medium-sized businesses in India by providing a comprehensive, AI-driven solution. Key functionalities include inventory management, GST-compliant billing, voice AI assistance, demand forecasting, and analytics.
 
 ## Project Structure
 
 ```
-├── app/
-│   ├── api/              # API routes (backend)
-│   │   ├── dashboard/
-│   │   ├── inventory/
-│   │   ├── billing/
-│   │   ├── analytics/
-│   │   ├── voice/
-│   │   └── notifications/
-│   ├── globals.css       # Global styles
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Main page
-├── components/           # React components
-│   ├── Navbar.tsx
-│   ├── Dashboard.tsx
-│   ├── Inventory.tsx
-│   ├── Billing.tsx
-│   ├── VoiceAI.tsx
-│   ├── Analytics.tsx
-│   ├── NotificationPanel.tsx
-│   └── SuccessModal.tsx
-├── package.json
-├── tsconfig.json
-├── tailwind.config.js
-└── next.config.js
+POS/
+├── backend/          # Python FastAPI Backend
+│   ├── app/
+│   │   ├── main.py             # FastAPI application entry point
+│   │   ├── core/               # Configuration, database setup
+│   │   ├── modules/            # Feature-specific modules (inventory, sales, etc.)
+│   │   ├── migrations/         # Supabase SQL migration files
+│   │   └── utils/              # Utility functions (barcode, bill number)
+│   └── requirements.txt        # Python dependencies
+├── frontend/         # Next.js React Frontend
+│   ├── app/                    # Next.js App Router components
+│   ├── components/             # Reusable React components
+│   ├── public/                 # Static assets
+│   ├── styles/                 # Global styles
+│   ├── package.json            # Node.js dependencies and scripts
+│   └── next.config.js          # Next.js configuration (with API proxy)
+├── .env.example      # Example environment variables
+├── .gitignore        # Git ignore rules
+└── README.md         # This file
 ```
 
-## API Endpoints
+## Getting Started
 
-- `GET /api/dashboard` - Get dashboard data
-- `GET /api/inventory` - Get inventory data
-- `POST /api/inventory` - Update inventory
-- `GET /api/billing` - Get recent bills
-- `POST /api/billing` - Create new bill
-- `GET /api/analytics` - Get analytics data
-- `POST /api/voice` - Process voice command
-- `GET /api/notifications` - Get notifications
-- `PUT /api/notifications` - Mark notification as read
+Follow these steps to set up and run the application locally.
 
-## Building for Production
+### Backend Setup
 
-```bash
-npm run build
-npm start
-```
+1.  **Navigate to the backend directory:**
+    ```bash
+    cd backend
+    ```
+2.  **Install Python dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  **Configure Environment Variables:**
+    Create a `.env` file in the `backend/` directory based on `backend/.env.example`.
+    ```bash
+    cp backend/.env.example backend/.env
+    ```
+    Fill in your Supabase project URL and API key.
+    ```env
+    SUPABASE_URL="YOUR_SUPABASE_URL"
+    SUPABASE_KEY="YOUR_SUPABASE_ANON_KEY"
+    CORS_ORIGINS="http://localhost:3000"
+    DEBUG=True
+    ```
+4.  **Run Supabase Migrations:**
+    Apply the SQL migration files located in `backend/app/migrations/` to your Supabase project.
+    You can do this manually via the Supabase Dashboard SQL Editor or using the Supabase CLI.
+5.  **Start the Backend Server:**
+    ```bash
+    uvicorn app.main:app --reload --port 8000
+    ```
+    The backend will be running at `http://localhost:8000`.
 
-## Notes
+### Frontend Setup
 
-- The current implementation uses mock data. In a production environment, you would:
-  - Connect to a database (PostgreSQL, MongoDB, etc.)
-  - Implement authentication & authorization
-  - Add real-time updates (WebSockets)
-  - Integrate with payment gateways
-  - Add proper error handling & validation
-  - Implement voice recognition APIs
-  - Add data persistence
+1.  **Navigate to the frontend directory:**
+    ```bash
+    cd frontend
+    ```
+2.  **Install Node.js dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Start the Frontend Development Server:**
+    ```bash
+    npm run dev
+    ```
+    The frontend will be accessible at `http://localhost:3000`.
+    API requests from the frontend to `/api/*` will be automatically proxied to the backend running on `http://localhost:8000`.
+
+## Architecture
+
+Refer to [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed overview of the application's architecture, including data flows and component interactions.
+
+## Features
+
+-   **Dashboard**: Real-time insights and KPIs.
+-   **Inventory Management**: AI-powered stock tracking & forecasting.
+-   **Billing**: GST-compliant instant invoicing.
+-   **Voice AI**: Multi-language voice assistant (Hindi, Tamil, Telugu, English).
+-   **Analytics**: Demand forecasting & business insights.
+-   **Notifications**: Real-time alerts for low stock, high demand, etc.
 
 ## License
 
-MIT
-
+This project is licensed under the MIT License.
