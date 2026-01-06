@@ -25,74 +25,74 @@ export default function Inventory() {
 
   return (
     <section className="animate-fade-in">
-      <div className="flex justify-between items-start mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-[32px] font-bold text-primary mb-1">Smart Inventory Management</h1>
-          <p className="text-gray-500 text-base">AI-powered stock tracking & forecasting</p>
+          <h1 className="text-2xl sm:text-[32px] font-bold text-primary mb-1">Smart Inventory Management</h1>
+          <p className="text-gray-500 text-sm sm:text-base">AI-powered stock tracking & forecasting</p>
         </div>
-        <div className="flex gap-4">
-          <button className="bg-white text-primary border border-gray-300 px-6 py-3 rounded-md font-semibold cursor-pointer flex items-center gap-2 transition-all hover:bg-gray-100 hover:border-primary hover:scale-[1.02]">
-            <Scan className="w-5 h-5" />
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+          <button className="bg-white text-primary border border-gray-300 px-4 sm:px-6 py-2.5 sm:py-3 rounded-md text-sm sm:text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all hover:bg-gray-100 hover:border-primary hover:scale-[1.02] w-full sm:w-auto">
+            <Scan className="w-4 h-4 sm:w-5 sm:h-5" />
             Scan Barcode
           </button>
-          <button className="bg-primary text-secondary border-none px-6 py-3 rounded-md font-semibold cursor-pointer flex items-center gap-2 transition-all hover:bg-primary-light hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg">
-            <Plus className="w-5 h-5" />
+          <button className="bg-primary text-secondary border-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-md text-sm sm:text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all hover:bg-primary-light hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg w-full sm:w-auto">
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             Add Product
           </button>
         </div>
       </div>
 
       {/* Inventory Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-4">
-          <PackageCheck className="w-8 h-8 text-primary" />
-          <div>
-            <div className="text-[28px] font-bold text-primary">236</div>
-            <div className="text-sm text-gray-600">In Stock</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex items-center gap-2 sm:gap-4">
+          <PackageCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
+          <div className="min-w-0">
+            <div className="text-xl sm:text-[28px] font-bold text-primary">236</div>
+            <div className="text-xs sm:text-sm text-gray-600">In Stock</div>
           </div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-4">
-          <AlertTriangle className="w-8 h-8 text-warning" />
-          <div>
-            <div className="text-[28px] font-bold text-primary">12</div>
-            <div className="text-sm text-gray-600">Low Stock</div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex items-center gap-2 sm:gap-4">
+          <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-warning flex-shrink-0" />
+          <div className="min-w-0">
+            <div className="text-xl sm:text-[28px] font-bold text-primary">12</div>
+            <div className="text-xs sm:text-sm text-gray-600">Low Stock</div>
           </div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-4">
-          <PackageX className="w-8 h-8 text-danger" />
-          <div>
-            <div className="text-[28px] font-bold text-primary">8</div>
-            <div className="text-sm text-gray-600">Expiring Soon</div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex items-center gap-2 sm:gap-4">
+          <PackageX className="w-6 h-6 sm:w-8 sm:h-8 text-danger flex-shrink-0" />
+          <div className="min-w-0">
+            <div className="text-xl sm:text-[28px] font-bold text-primary">8</div>
+            <div className="text-xs sm:text-sm text-gray-600">Expiring Soon</div>
           </div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-4">
-          <TrendingUp className="w-8 h-8 text-success" />
-          <div>
-            <div className="text-[28px] font-bold text-primary">₹2.4L</div>
-            <div className="text-sm text-gray-600">Stock Value</div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex items-center gap-2 sm:gap-4">
+          <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-success flex-shrink-0" />
+          <div className="min-w-0">
+            <div className="text-xl sm:text-[28px] font-bold text-primary">₹2.4L</div>
+            <div className="text-xs sm:text-sm text-gray-600">Stock Value</div>
           </div>
         </div>
       </div>
 
       {/* Inventory Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <div className="flex items-center gap-2 bg-gray-100 px-4 py-2.5 rounded-md flex-1 max-w-[400px]">
-            <Search className="w-4.5 h-4.5 text-gray-500" />
+        <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-0">
+          <div className="flex items-center gap-2 bg-gray-100 px-3 sm:px-4 py-2 sm:py-2.5 rounded-md flex-1 sm:max-w-[400px]">
+            <Search className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-gray-500 flex-shrink-0" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border-none bg-transparent outline-none flex-1 text-sm text-primary"
+              className="border-none bg-transparent outline-none flex-1 text-xs sm:text-sm text-primary min-w-0"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {['All', 'Low Stock', 'Expiring'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 border rounded-md font-medium cursor-pointer transition-all ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 border rounded-md text-xs sm:text-sm font-medium cursor-pointer transition-all ${
                   activeFilter === filter
                     ? 'bg-primary text-secondary border-primary'
                     : 'bg-white border-gray-300 hover:border-primary'
@@ -103,77 +103,79 @@ export default function Inventory() {
             ))}
           </div>
         </div>
-        <table className="w-full border-collapse">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Product</th>
-              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Category</th>
-              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Stock</th>
-              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Min Level</th>
-              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Status</th>
-              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">AI Forecast</th>
-              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((product, index) => {
-              const ForecastIcon = product.forecastIcon
-              return (
-                <tr
-                  key={product.sku}
-                  className="border-t border-gray-200 transition-all cursor-pointer hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99]"
-                >
-                  <td className="p-4 text-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-base">
-                        {product.name[0]}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse min-w-[800px]">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Product</th>
+                <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Category</th>
+                <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Stock</th>
+                <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Min Level</th>
+                <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Status</th>
+                <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">AI Forecast</th>
+                <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product, index) => {
+                const ForecastIcon = product.forecastIcon
+                return (
+                  <tr
+                    key={product.sku}
+                    className="border-t border-gray-200 transition-all cursor-pointer hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                      <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">
+                          {product.name[0]}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-primary truncate">{product.name}</div>
+                          <div className="text-[10px] sm:text-xs text-gray-500">SKU: {product.sku}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-semibold text-primary">{product.name}</div>
-                        <div className="text-xs text-gray-500">SKU: {product.sku}</div>
+                    </td>
+                    <td className="p-3 sm:p-4 text-xs sm:text-sm">{product.category}</td>
+                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                      <span className={`font-semibold ${
+                        product.stockWarning ? 'text-warning' : product.stockDanger ? 'text-danger' : 'text-primary'
+                      }`}>
+                        {product.stock}
+                      </span>
+                    </td>
+                    <td className="p-3 sm:p-4 text-xs sm:text-sm">{product.minLevel}</td>
+                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                      <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap ${
+                        product.status === 'Good Stock'
+                          ? 'bg-green-100 text-green-700'
+                          : product.status === 'Low Stock'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {product.status}
+                      </span>
+                    </td>
+                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                      <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-600 whitespace-nowrap">
+                        <ForecastIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                        {product.forecast}
                       </div>
-                    </div>
-                  </td>
-                  <td className="p-4 text-sm">{product.category}</td>
-                  <td className="p-4 text-sm">
-                    <span className={`font-semibold ${
-                      product.stockWarning ? 'text-warning' : product.stockDanger ? 'text-danger' : 'text-primary'
-                    }`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm">{product.minLevel}</td>
-                  <td className="p-4 text-sm">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      product.status === 'Good Stock'
-                        ? 'bg-green-100 text-green-700'
-                        : product.status === 'Low Stock'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}>
-                      {product.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm">
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <ForecastIcon className="w-3.5 h-3.5" />
-                      {product.forecast}
-                    </div>
-                  </td>
-                  <td className="p-4 text-sm">
-                    <button className="w-8 h-8 border-none bg-gray-100 rounded-md cursor-pointer flex items-center justify-center transition-all hover:bg-primary hover:text-secondary hover:scale-110">
-                      {product.status === 'Critical' || product.status === 'Low Stock' ? (
-                        <ShoppingCart className="w-4 h-4" />
-                      ) : (
-                        <Edit className="w-4 h-4" />
-                      )}
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                      <button className="w-7 h-7 sm:w-8 sm:h-8 border-none bg-gray-100 rounded-md cursor-pointer flex items-center justify-center transition-all hover:bg-primary hover:text-secondary hover:scale-110">
+                        {product.status === 'Critical' || product.status === 'Low Stock' ? (
+                          <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        ) : (
+                          <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   )

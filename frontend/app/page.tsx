@@ -23,7 +23,7 @@ export default function Home() {
         onNotificationClick={() => setIsNotificationOpen(!isNotificationOpen)}
       />
       
-      <main className="max-w-[1400px] mx-auto px-6 py-8">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
         {activeSection === 'dashboard' && <Dashboard />}
         {activeSection === 'inventory' && <Inventory />}
         {activeSection === 'billing' && <Billing onComplete={() => setIsModalOpen(true)} />}
