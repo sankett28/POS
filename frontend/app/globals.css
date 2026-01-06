@@ -91,3 +91,37 @@
   }
 }
 
+/* Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .invoice-container,
+  .invoice-container * {
+    visibility: visible;
+  }
+  
+  .invoice-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    margin: 0;
+    background: white;
+  }
+  
+  @page {
+    margin: 0.5cm;
+    size: A4;
+  }
+  
+  /* Hide print button and other UI elements */
+  button,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+}
+

@@ -80,23 +80,23 @@ export default function VoiceAI() {
 
   return (
     <section className="animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-[32px] font-bold text-primary mb-1">Voice AI Assistant</h1>
-        <p className="text-gray-500 text-base">Speak in Hindi, Tamil, or Telugu</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-[32px] font-bold text-primary mb-1">Voice AI Assistant</h1>
+        <p className="text-gray-500 text-sm sm:text-base">Speak in Hindi, Tamil, or Telugu</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-          <div className="relative mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8 lg:p-12 text-center">
+          <div className="relative mb-6 sm:mb-8">
             <div
-              className={`w-[200px] h-[200px] rounded-full bg-primary flex items-center justify-center mx-auto relative z-10 transition-all ${
+              className={`w-[150px] h-[150px] sm:w-[180px] sm:h-[180px] lg:w-[200px] lg:h-[200px] rounded-full bg-primary flex items-center justify-center mx-auto relative z-10 transition-all ${
                 isListening ? 'animate-pulse-icon' : ''
               }`}
             >
               {isListening ? (
-                <MicOff className="w-20 h-20 text-secondary" />
+                <MicOff className="w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 text-secondary" />
               ) : (
-                <Mic className="w-20 h-20 text-secondary" />
+                <Mic className="w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 text-secondary" />
               )}
             </div>
             {isListening && (
@@ -104,7 +104,7 @@ export default function VoiceAI() {
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] border-2 border-primary rounded-full opacity-0 animate-wave"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px] sm:w-[180px] sm:h-[180px] lg:w-[200px] lg:h-[200px] border-2 border-primary rounded-full opacity-0 animate-wave"
                     style={{ animationDelay: `${i * 0.5}s` }}
                   />
                 ))}
@@ -112,36 +112,36 @@ export default function VoiceAI() {
             )}
           </div>
 
-          <div className="mb-8">
-            <h3 className="text-2xl font-semibold text-primary mb-2">{voiceStatus.title}</h3>
-            <p className={`text-gray-600 text-[15px] ${voiceStatus.description.startsWith('✓') ? 'text-green-600 font-semibold mt-4' : ''}`}>
+          <div className="mb-6 sm:mb-8">
+            <h3 className="text-xl sm:text-2xl font-semibold text-primary mb-2">{voiceStatus.title}</h3>
+            <p className={`text-gray-600 text-sm sm:text-[15px] ${voiceStatus.description.startsWith('✓') ? 'text-green-600 font-semibold mt-3 sm:mt-4' : ''}`}>
               {voiceStatus.description}
             </p>
           </div>
 
           <button
             onClick={toggleVoice}
-            className="bg-primary text-secondary border-none px-8 py-4 rounded-xl text-base font-semibold cursor-pointer inline-flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:shadow-lg mb-8"
+            className="bg-primary text-secondary border-none px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-semibold cursor-pointer inline-flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:shadow-lg mb-6 sm:mb-8 w-full sm:w-auto justify-center"
           >
             {isListening ? (
               <>
-                <MicOff className="w-5 h-5" />
+                <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />
                 Stop Listening
               </>
             ) : (
               <>
-                <Mic className="w-5 h-5" />
+                <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
                 Start Listening
               </>
             )}
           </button>
 
-          <div className="flex gap-2 justify-center">
+          <div className="flex flex-wrap gap-2 justify-center">
             {languages.map((lang) => (
               <button
                 key={lang}
                 onClick={() => setSelectedLanguage(lang)}
-                className={`px-5 py-2.5 border rounded-md font-medium cursor-pointer transition-all ${
+                className={`px-3 sm:px-5 py-2 sm:py-2.5 border rounded-md text-xs sm:text-sm font-medium cursor-pointer transition-all ${
                   selectedLanguage === lang
                     ? 'bg-primary text-secondary border-primary'
                     : 'bg-white border-gray-300 hover:border-primary'
@@ -153,20 +153,20 @@ export default function VoiceAI() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-8">
-          <h3 className="text-xl font-semibold text-primary mb-6">Try These Commands</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 lg:p-8">
+          <h3 className="text-lg sm:text-xl font-semibold text-primary mb-4 sm:mb-6">Try These Commands</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {examples.map((example, index) => {
               const Icon = example.icon
               return (
                 <div
                   key={index}
                   onClick={() => simulateVoiceCommand(example.type)}
-                  className="bg-gray-50 border border-gray-200 rounded-md p-6 cursor-pointer transition-all hover:bg-primary hover:text-secondary hover:border-primary hover:-translate-y-0.5 hover:shadow-md group"
+                  className="bg-gray-50 border border-gray-200 rounded-md p-4 sm:p-6 cursor-pointer transition-all hover:bg-primary hover:text-secondary hover:border-primary hover:-translate-y-0.5 hover:shadow-md group"
                 >
-                  <Icon className="w-6 h-6 mb-2 text-primary group-hover:text-secondary" />
-                  <p className="font-semibold mb-2 text-primary group-hover:text-secondary">{example.text}</p>
-                  <span className="text-xs text-gray-500 group-hover:text-gray-300">{example.lang}</span>
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-2 text-primary group-hover:text-secondary" />
+                  <p className="font-semibold mb-2 text-sm sm:text-base text-primary group-hover:text-secondary">{example.text}</p>
+                  <span className="text-[10px] sm:text-xs text-gray-500 group-hover:text-gray-300">{example.lang}</span>
                 </div>
               )
             })}
