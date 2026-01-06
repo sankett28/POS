@@ -10,23 +10,37 @@ interface BillItem {
   total: number
 }
 
-interface BillingProps {
-  onComplete: () => void
+interface Product {
+  name: string
+  price: number
+  initial: string
+  category?: string
+  sku?: string
 }
 
-export default function Billing({ onComplete }: BillingProps) {
+interface BillingProps {
+  products: Product[]
+  onComplete: (billData: {
+    billItems: BillItem[]
+    subtotal: number
+    gst: number
+    total: number
+    paymentMethod: string
+  }) => void
+}
+
+export default function Billing({ products, onComplete }: BillingProps) {
   const [billItems, setBillItems] = useState<BillItem[]>([])
   const [paymentMethod, setPaymentMethod] = useState('Cash')
   const [subtotal, setSubtotal] = useState(0)
   const [gst, setGst] = useState(0)
   const [total, setTotal] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
 
-  const products = [
-    { name: 'Maggi Noodles', price: 12, initial: 'M' },
-    { name: 'Parle-G', price: 10, initial: 'P' },
-    { name: 'Tata Tea', price: 250, initial: 'T' },
-    { name: 'Amul Butter', price: 55, initial: 'A' },
-  ]
+  // Filter products based on search term
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   const addToBill = (name: string, price: number) => {
     setBillItems(prev => {
@@ -69,7 +83,13 @@ export default function Billing({ onComplete }: BillingProps) {
       alert('Please add items to the bill first!')
       return
     }
-    onComplete()
+    onComplete({
+      billItems,
+      subtotal,
+      gst,
+      total,
+      paymentMethod
+    })
     setTimeout(() => {
       clearBill()
     }, 2000)
@@ -89,28 +109,49 @@ export default function Billing({ onComplete }: BillingProps) {
             <input
               type="text"
               placeholder="Search or scan product..."
-              className="border-none bg-transparent outline-none flex-1 text-sm sm:text-[15px] min-w-0"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="border-none bg-transparent outline-none flex-1 text-sm sm:text-[15px] min-w-0 text-primary"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="w-7 h-7 sm:w-8 sm:h-8 border-none bg-gray-200 rounded-md cursor-pointer flex items-center justify-center transition-all hover:bg-gray-300 hover:scale-105 flex-shrink-0"
+              >
+                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
+              </button>
+            )}
             <button className="w-9 h-9 sm:w-10 sm:h-10 border-none bg-gray-100 rounded-md cursor-pointer flex items-center justify-center transition-all hover:bg-gray-200 hover:scale-105 flex-shrink-0">
               <Scan className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {products.map((product) => (
-              <div
-                key={product.name}
-                onClick={() => addToBill(product.name, product.price)}
-                className="bg-gray-50 border border-gray-200 rounded-md p-3 sm:p-4 text-center cursor-pointer transition-all hover:bg-primary hover:text-secondary hover:border-primary hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg relative overflow-hidden group"
-              >
-                <div className="w-[50px] h-[50px] sm:w-[60px] sm:h-[60px] rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-xl sm:text-2xl mx-auto mb-2 group-hover:bg-secondary group-hover:text-primary">
-                  {product.initial}
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.name}
+                  onClick={() => {
+                    addToBill(product.name, product.price)
+                    setSearchTerm('') // Clear search after adding product
+                  }}
+                  className="bg-gray-50 border border-gray-200 rounded-md p-3 sm:p-4 text-center cursor-pointer transition-all hover:bg-primary hover:text-secondary hover:border-primary hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg relative overflow-hidden group"
+                >
+                  <div className="w-[50px] h-[50px] sm:w-[60px] sm:h-[60px] rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-xl sm:text-2xl mx-auto mb-2 group-hover:bg-secondary group-hover:text-primary">
+                    {product.initial}
+                  </div>
+                  <div className="font-semibold text-xs sm:text-sm mb-1">{product.name}</div>
+                  <div className="font-bold text-sm sm:text-base text-primary group-hover:text-secondary">₹{product.price}</div>
                 </div>
-                <div className="font-semibold text-xs sm:text-sm mb-1">{product.name}</div>
-                <div className="font-bold text-sm sm:text-base text-primary group-hover:text-secondary">₹{product.price}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+              <Search className="w-12 h-12 sm:w-16 sm:h-16 mb-4 opacity-50" />
+              <p className="text-sm sm:text-base font-medium">No products found</p>
+              <p className="text-xs sm:text-sm mt-1">Try searching with a different term</p>
+            </div>
+          )}
         </div>
 
         <div className="lg:sticky lg:top-20 h-fit">

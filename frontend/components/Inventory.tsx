@@ -1,27 +1,88 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { PackageCheck, AlertTriangle, PackageX, TrendingUp, Scan, Plus, Search, Edit, ShoppingCart } from 'lucide-react'
+import AddProductModal from './AddProductModal'
 
-export default function Inventory() {
+interface Product {
+  name: string
+  price: number
+  initial: string
+  category?: string
+  sku?: string
+  stock?: number
+  minLevel?: number
+}
+
+interface InventoryProps {
+  products: Product[]
+  onAddProduct: (product: Product) => void
+}
+
+export default function Inventory({ products, onAddProduct }: InventoryProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
-  const products = [
-    { name: 'Maggi Noodles 2-Min', sku: 'MAG001', category: 'Instant Food', stock: 45, minLevel: 20, status: 'Good Stock', forecast: 'High demand', forecastIcon: TrendingUp },
-    { name: 'Parle-G Biscuits', sku: 'PAR002', category: 'Biscuits', stock: 8, minLevel: 15, status: 'Low Stock', forecast: 'Reorder now', forecastIcon: AlertTriangle, stockWarning: true },
-    { name: 'Tata Tea Gold', sku: 'TEA003', category: 'Beverages', stock: 32, minLevel: 25, status: 'Good Stock', forecast: 'Stable', forecastIcon: TrendingUp },
-    { name: 'Amul Butter 500g', sku: 'AMU004', category: 'Dairy', stock: 3, minLevel: 10, status: 'Critical', forecast: 'Urgent!', forecastIcon: AlertTriangle, stockDanger: true },
-  ]
+  // Process products for inventory display
+  const inventoryProducts = useMemo(() => {
+    return products.map((product) => {
+      const stock = product.stock || 0
+      const minLevel = product.minLevel || 10
+      let status = 'Good Stock'
+      let forecast = 'Stable'
+      let forecastIcon = TrendingUp
+      let stockWarning = false
+      let stockDanger = false
 
-  const filteredProducts = products.filter(product => {
+      if (stock < minLevel) {
+        if (stock === 0 || stock < minLevel * 0.3) {
+          status = 'Critical'
+          forecast = 'Urgent!'
+          forecastIcon = AlertTriangle
+          stockDanger = true
+        } else {
+          status = 'Low Stock'
+          forecast = 'Reorder now'
+          forecastIcon = AlertTriangle
+          stockWarning = true
+        }
+      } else if (stock > minLevel * 2) {
+        forecast = 'High demand'
+        forecastIcon = TrendingUp
+      }
+
+      return {
+        ...product,
+        stock,
+        minLevel,
+        status,
+        forecast,
+        forecastIcon,
+        stockWarning,
+        stockDanger
+      }
+    })
+  }, [products])
+
+  const filteredProducts = inventoryProducts.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+                         (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesFilter = activeFilter === 'All' ||
                          (activeFilter === 'Low Stock' && product.stock < product.minLevel) ||
                          (activeFilter === 'Expiring' && product.status === 'Critical')
     return matchesSearch && matchesFilter
   })
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const inStock = inventoryProducts.filter(p => p.stock > 0).length
+    const lowStock = inventoryProducts.filter(p => p.stock < p.minLevel && p.stock > 0).length
+    const critical = inventoryProducts.filter(p => p.stock === 0 || p.stock < (p.minLevel || 10) * 0.3).length
+    const stockValue = inventoryProducts.reduce((sum, p) => sum + (p.stock || 0) * (p.price || 0), 0)
+    
+    return { inStock, lowStock, critical, stockValue }
+  }, [inventoryProducts])
 
   return (
     <section className="animate-fade-in">
@@ -35,7 +96,10 @@ export default function Inventory() {
             <Scan className="w-4 h-4 sm:w-5 sm:h-5" />
             Scan Barcode
           </button>
-          <button className="bg-primary text-secondary border-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-md text-sm sm:text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all hover:bg-primary-light hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg w-full sm:w-auto">
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-primary text-secondary border-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-md text-sm sm:text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all hover:bg-primary-light hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg w-full sm:w-auto"
+          >
             <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             Add Product
           </button>
@@ -47,28 +111,30 @@ export default function Inventory() {
         <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex items-center gap-2 sm:gap-4">
           <PackageCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
           <div className="min-w-0">
-            <div className="text-xl sm:text-[28px] font-bold text-primary">236</div>
+            <div className="text-xl sm:text-[28px] font-bold text-primary">{stats.inStock}</div>
             <div className="text-xs sm:text-sm text-gray-600">In Stock</div>
           </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex items-center gap-2 sm:gap-4">
           <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-warning flex-shrink-0" />
           <div className="min-w-0">
-            <div className="text-xl sm:text-[28px] font-bold text-primary">12</div>
+            <div className="text-xl sm:text-[28px] font-bold text-primary">{stats.lowStock}</div>
             <div className="text-xs sm:text-sm text-gray-600">Low Stock</div>
           </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex items-center gap-2 sm:gap-4">
           <PackageX className="w-6 h-6 sm:w-8 sm:h-8 text-danger flex-shrink-0" />
           <div className="min-w-0">
-            <div className="text-xl sm:text-[28px] font-bold text-primary">8</div>
-            <div className="text-xs sm:text-sm text-gray-600">Expiring Soon</div>
+            <div className="text-xl sm:text-[28px] font-bold text-primary">{stats.critical}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Critical</div>
           </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex items-center gap-2 sm:gap-4">
           <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-success flex-shrink-0" />
           <div className="min-w-0">
-            <div className="text-xl sm:text-[28px] font-bold text-primary">₹2.4L</div>
+            <div className="text-xl sm:text-[28px] font-bold text-primary">
+              ₹{stats.stockValue >= 100000 ? (stats.stockValue / 100000).toFixed(1) + 'L' : (stats.stockValue / 1000).toFixed(1) + 'k'}
+            </div>
             <div className="text-xs sm:text-sm text-gray-600">Stock Value</div>
           </div>
         </div>
@@ -177,6 +243,13 @@ export default function Inventory() {
           </table>
         </div>
       </div>
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={onAddProduct}
+      />
     </section>
   )
 }
