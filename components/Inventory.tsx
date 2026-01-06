@@ -1,0 +1,181 @@
+'use client'
+
+import { useState } from 'react'
+import { PackageCheck, AlertTriangle, PackageX, TrendingUp, Scan, Plus, Search, Edit, ShoppingCart } from 'lucide-react'
+
+export default function Inventory() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [activeFilter, setActiveFilter] = useState('All')
+
+  const products = [
+    { name: 'Maggi Noodles 2-Min', sku: 'MAG001', category: 'Instant Food', stock: 45, minLevel: 20, status: 'Good Stock', forecast: 'High demand', forecastIcon: TrendingUp },
+    { name: 'Parle-G Biscuits', sku: 'PAR002', category: 'Biscuits', stock: 8, minLevel: 15, status: 'Low Stock', forecast: 'Reorder now', forecastIcon: AlertTriangle, stockWarning: true },
+    { name: 'Tata Tea Gold', sku: 'TEA003', category: 'Beverages', stock: 32, minLevel: 25, status: 'Good Stock', forecast: 'Stable', forecastIcon: TrendingUp },
+    { name: 'Amul Butter 500g', sku: 'AMU004', category: 'Dairy', stock: 3, minLevel: 10, status: 'Critical', forecast: 'Urgent!', forecastIcon: AlertTriangle, stockDanger: true },
+  ]
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = activeFilter === 'All' ||
+                         (activeFilter === 'Low Stock' && product.stock < product.minLevel) ||
+                         (activeFilter === 'Expiring' && product.status === 'Critical')
+    return matchesSearch && matchesFilter
+  })
+
+  return (
+    <section className="animate-fade-in">
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-[32px] font-bold text-primary mb-1">Smart Inventory Management</h1>
+          <p className="text-gray-500 text-base">AI-powered stock tracking & forecasting</p>
+        </div>
+        <div className="flex gap-4">
+          <button className="bg-white text-primary border border-gray-300 px-6 py-3 rounded-md font-semibold cursor-pointer flex items-center gap-2 transition-all hover:bg-gray-100 hover:border-primary hover:scale-[1.02]">
+            <Scan className="w-5 h-5" />
+            Scan Barcode
+          </button>
+          <button className="bg-primary text-secondary border-none px-6 py-3 rounded-md font-semibold cursor-pointer flex items-center gap-2 transition-all hover:bg-primary-light hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg">
+            <Plus className="w-5 h-5" />
+            Add Product
+          </button>
+        </div>
+      </div>
+
+      {/* Inventory Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-4">
+          <PackageCheck className="w-8 h-8 text-primary" />
+          <div>
+            <div className="text-[28px] font-bold text-primary">236</div>
+            <div className="text-sm text-gray-600">In Stock</div>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-4">
+          <AlertTriangle className="w-8 h-8 text-warning" />
+          <div>
+            <div className="text-[28px] font-bold text-primary">12</div>
+            <div className="text-sm text-gray-600">Low Stock</div>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-4">
+          <PackageX className="w-8 h-8 text-danger" />
+          <div>
+            <div className="text-[28px] font-bold text-primary">8</div>
+            <div className="text-sm text-gray-600">Expiring Soon</div>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center gap-4">
+          <TrendingUp className="w-8 h-8 text-success" />
+          <div>
+            <div className="text-[28px] font-bold text-primary">₹2.4L</div>
+            <div className="text-sm text-gray-600">Stock Value</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Inventory Table */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+          <div className="flex items-center gap-2 bg-gray-100 px-4 py-2.5 rounded-md flex-1 max-w-[400px]">
+            <Search className="w-4.5 h-4.5 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="border-none bg-transparent outline-none flex-1 text-sm text-primary"
+            />
+          </div>
+          <div className="flex gap-2">
+            {['All', 'Low Stock', 'Expiring'].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-4 py-2 border rounded-md font-medium cursor-pointer transition-all ${
+                  activeFilter === filter
+                    ? 'bg-primary text-secondary border-primary'
+                    : 'bg-white border-gray-300 hover:border-primary'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        </div>
+        <table className="w-full border-collapse">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Product</th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Category</th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Stock</th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Min Level</th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Status</th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">AI Forecast</th>
+              <th className="p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProducts.map((product, index) => {
+              const ForecastIcon = product.forecastIcon
+              return (
+                <tr
+                  key={product.sku}
+                  className="border-t border-gray-200 transition-all cursor-pointer hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  <td className="p-4 text-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-base">
+                        {product.name[0]}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-primary">{product.name}</div>
+                        <div className="text-xs text-gray-500">SKU: {product.sku}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 text-sm">{product.category}</td>
+                  <td className="p-4 text-sm">
+                    <span className={`font-semibold ${
+                      product.stockWarning ? 'text-warning' : product.stockDanger ? 'text-danger' : 'text-primary'
+                    }`}>
+                      {product.stock}
+                    </span>
+                  </td>
+                  <td className="p-4 text-sm">{product.minLevel}</td>
+                  <td className="p-4 text-sm">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      product.status === 'Good Stock'
+                        ? 'bg-green-100 text-green-700'
+                        : product.status === 'Low Stock'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {product.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-sm">
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <ForecastIcon className="w-3.5 h-3.5" />
+                      {product.forecast}
+                    </div>
+                  </td>
+                  <td className="p-4 text-sm">
+                    <button className="w-8 h-8 border-none bg-gray-100 rounded-md cursor-pointer flex items-center justify-center transition-all hover:bg-primary hover:text-secondary hover:scale-110">
+                      {product.status === 'Critical' || product.status === 'Low Stock' ? (
+                        <ShoppingCart className="w-4 h-4" />
+                      ) : (
+                        <Edit className="w-4 h-4" />
+                      )}
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
+
