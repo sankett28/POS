@@ -1,5 +1,242 @@
-from app.core.db import supabase\nfrom app.utils.barcode import generate_barcode, validate_barcode\nfrom typing import Dict, Any, Optional, List\nfrom fastapi import HTTPException\nimport uuid\n\nclass ProductService:\n    \"\"\"\n    Product service for V1 MVP.\n    Handles product catalog operations.\n    \"\"\"\n    \n    async def get_products(self) -> Dict[str, Any]:\n        \"\"\"\n        Get all products from catalog.\n        \n        Returns:\n            Dictionary with products list\n        \"\"\"\
-        if supabase is None:\n            return {\"products\": []}\n        \n        try:\n            # Query all products ordered by name\n            response = supabase.table(\"products\")\\\n                .select(\"*\")\\\n                .order(\"name\")\\\n                .execute()\n            \n            products = response.data if response.data else []\n            \n            # Join with inventory balance for current stock\n            for product in products:\n                product_id = product[\"id\"]\n                balance_response = supabase.table(\"inventory_balance\")\\\n                    .select(\"qty_on_hand\")\\\n                    .eq(\"product_id\", product_id)\\\n                    .execute()\n                \n                if balance_response.data:\n                    product[\"qty_on_hand\"] = float(balance_response.data[0][\"qty_on_hand\"])\n                else:\n                    product[\"qty_on_hand\"] = 0.0\n            \n            return {\"products\": products}\n            \n        except Exception as e:\n            raise HTTPException(\n                status_code=500,\n                detail=f\"Error fetching products: {str(e)}\"\n            )\n    \n    async def get_product(self, product_id: str) -> Optional[Dict[str, Any]]:\n        \"\"\"\n        Get a specific product by ID.\n        \n        Args:\n            product_id: UUID of the product\n            \n        Returns:\n            Product dictionary or None if not found\n        \"\"\"\
-        if supabase is None:\n            return None\n        \n        try:\n            response = supabase.table(\"products\")\\\n                .select(\"*\")\\\n                .eq(\"id\", product_id)\\\n                .execute()\n            \n            if not response.data:\n                return None\n            \n            product = response.data[0]\n            \n            # Get current stock\n            balance_response = supabase.table(\"inventory_balance\")\\\n                .select(\"qty_on_hand\")\\\n                .eq(\"product_id\", product_id)\\\n                .execute()\n            \n            if balance_response.data:\n                product[\"qty_on_hand\"] = float(balance_response.data[0][\"qty_on_hand\"])\n            else:\n                product[\"qty_on_hand\"] = 0.0\n            \n            return product\n            \n        except Exception as e:\n            raise HTTPException(\n                status_code=500,\n                detail=f\"Error fetching product: {str(e)}\"\n            )\n    \n    async def get_product_by_barcode(self, barcode: str) -> Optional[Dict[str, Any]]:\n        \"\"\"\n        Get product by barcode.\n        \n        Args:\n            barcode: Barcode string\n            \n        Returns:\n            Product dictionary or None if not found\n        \"\"\"\
-        if supabase is None:\n            return None\n        \n        try:\n            response = supabase.table(\"products\")\\\n                .select(\"*\")\\\n                .eq(\"barcode\", barcode)\\\n                .execute()\n            \n            if not response.data:\n                return None\n            \n            product = response.data[0]\n            \n            # Get current stock\n            product_id = product[\"id\"]\n            balance_response = supabase.table(\"inventory_balance\")\\\n                .select(\"qty_on_hand\")\\\n                .eq(\"product_id\", product_id)\\\n                .execute()\n            \n            if balance_response.data:\n                product[\"qty_on_hand\"] = float(balance_response.data[0][\"qty_on_hand\"])\n            else:\n                product[\"qty_on_hand\"] = 0.0\n            \n            return product\n            \n        except Exception as e:\n            raise HTTPException(\n                status_code=500,\n                detail=f\"Error fetching product by barcode: {str(e)}\"\n            )\n    \n    async def create_product(self, data: dict) -> Dict[str, Any]:\n        \"\"\"\n        Create a new product.\n        \n        Business Rules:\n        - SKU must be unique\n        - Barcode is auto-generated if not provided\n        - Barcode must be unique if provided\n        \n        Args:\n            data: Product data dictionary\n            \n        Returns:\n            Created product dictionary\n        \"\"\"\
-        if supabase is None:\n            raise HTTPException(status_code=503, detail=\"Database not available\")\n        \n        try:\n            # Validate required fields\n            if not data.get(\"name\"):\n                raise HTTPException(status_code=400, detail=\"Product name is required\")\n            if not data.get(\"sku\"):\n                raise HTTPException(status_code=400, detail=\"SKU is required\")\n            if not data.get(\"unit\"):\n                raise HTTPException(status_code=400, detail=\"Unit is required\")\n            if data.get(\"selling_price\") is None:\n                raise HTTPException(status_code=400, detail=\"Selling price is required\")\n            \n            # Generate barcode if not provided\n            barcode = data.get(\"barcode\")\n            if not barcode:\n                # Generate unique barcode\n                barcode = generate_barcode()\n                # Ensure uniqueness (retry if collision)\n                max_retries = 5\n                for _ in range(max_retries):\n                    existing = await self.get_product_by_barcode(barcode)\n                    if existing is None:\n                        break\n                    barcode = generate_barcode()\n                else:\n                    raise HTTPException(\n                        status_code=500,\n                        detail=\"Failed to generate unique barcode\"\n                    )\n            else:\n                # Validate provided barcode\n                if not validate_barcode(barcode):\n                    raise HTTPException(\n                        status_code=400,\n                        detail=\"Invalid barcode format\"\n                    )\n                # Check uniqueness\n                existing = await self.get_product_by_barcode(barcode)\n                if existing:\n                    raise HTTPException(\n                        status_code=400,\n                        detail=\"Barcode already exists\"\n                    )\n            \n            # Prepare product data\n            product_data = {\n                \"name\": data[\"name\"],\n                \"sku\": data[\"sku\"],\n                \"barcode\": barcode,\n                \"unit\": data[\"unit\"],\n                \"mrp\": data.get(\"mrp\"),\n                \"selling_price\": float(data[\"selling_price\"]),\n                \"tax_rate\": float(data.get(\"tax_rate\", 0))\n            }\n            \n            # Insert product\n            response = supabase.table(\"products\")\\\n                .insert(product_data)\\\n                .execute()\n            \n            if not response.data:\n                raise HTTPException(\n                    status_code=500,\n                    detail=\"Failed to create product\"\n                )\n            \n            product = response.data[0]\n            \n            # Initialize inventory balance to 0\n            supabase.table(\"inventory_balance\")\\\n                .insert({\n                    \"product_id\": product[\"id\"],\n                    \"qty_on_hand\": 0\n                })\\\n                .execute()\n            \n            product[\"qty_on_hand\"] = 0.0\n            \n            return {\"success\": True, \"product\": product}\n            \n        except HTTPException:\n            raise\n        except Exception as e:\n            raise HTTPException(\n                status_code=500,\n                detail=f\"Error creating product: {str(e)}\"\n            )
+from app.core.db import supabase
+from app.utils.barcode import generate_barcode, validate_barcode
+from typing import Dict, Any, Optional, List
+from fastapi import HTTPException
+
+class ProductService:
+    """
+    Product service for V1 MVP.
+    Handles product catalog operations.
+    """
+
+    async def get_products(self) -> Dict[str, Any]:
+        """
+        Get all products from catalog.
+        
+        Returns:
+            Dictionary with products list
+        """
+        if supabase is None:
+            return {"products": []}
+
+        try:
+            # Query all products ordered by name
+            response = supabase.table("products") \
+                .select("*") \
+                .order("name") \
+                .execute()
+
+            products = response.data if response.data else []
+
+            # Join with inventory balance for current stock
+            for product in products:
+                product_id = product["id"]
+                balance_response = supabase.table("inventory_balance") \
+                    .select("qty_on_hand") \
+                    .eq("product_id", product_id) \
+                    .execute()
+                
+                if balance_response.data:
+                    product["qty_on_hand"] = float(balance_response.data[0]["qty_on_hand"])
+                else:
+                    product["qty_on_hand"] = 0.0
+            
+            return {"products": products}
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error fetching products: {str(e)}"
+            )
+
+    async def get_product(self, product_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a specific product by ID.
+        
+        Args:
+            product_id: UUID of the product
+            
+        Returns:
+            Product dictionary or None if not found
+        """
+        if supabase is None:
+            return None
+        
+        try:
+            response = supabase.table("products") \
+                .select("*") \
+                .eq("id", product_id) \
+                .execute()
+            
+            if not response.data:
+                return None
+            
+            product = response.data[0]
+            
+            # Get current stock
+            balance_response = supabase.table("inventory_balance") \
+                .select("qty_on_hand") \
+                .eq("product_id", product_id) \
+                .execute()
+            
+            if balance_response.data:
+                product["qty_on_hand"] = float(balance_response.data[0]["qty_on_hand"])
+            else:
+                product["qty_on_hand"] = 0.0
+            
+            return product
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error fetching product: {str(e)}"
+            )
+
+    async def get_product_by_barcode(self, barcode: str) -> Optional[Dict[str, Any]]:
+        """
+        Get product by barcode.
+        
+        Args:
+            barcode: Barcode string
+            
+        Returns:
+            Product dictionary or None if not found
+        """
+        if supabase is None:
+            return None
+        
+        try:
+            response = supabase.table("products") \
+                .select("*") \
+                .eq("barcode", barcode) \
+                .execute()
+            
+            if not response.data:
+                return None
+            
+            product = response.data[0]
+            
+            # Get current stock
+            product_id = product["id"]
+            balance_response = supabase.table("inventory_balance") \
+                .select("qty_on_hand") \
+                .eq("product_id", product_id) \
+                .execute()
+            
+            if balance_response.data:
+                product["qty_on_hand"] = float(balance_response.data[0]["qty_on_hand"])
+            else:
+                product["qty_on_hand"] = 0.0
+            
+            return product
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error fetching product by barcode: {str(e)}"
+            )
+
+    async def create_product(self, data: dict) -> Dict[str, Any]:
+        """
+        Create a new product.
+        
+        Business Rules:
+        - SKU must be unique
+        - Barcode is auto-generated if not provided
+        - Barcode must be unique if provided
+        
+        Args:
+            data: Product data dictionary
+            
+        Returns:
+            Created product dictionary
+        """
+        if supabase is None:
+            raise HTTPException(status_code=503, detail="Database not available")
+        
+        try:
+            # Validate required fields
+            if not data.get("name"):
+                raise HTTPException(status_code=400, detail="Product name is required")
+            if not data.get("sku"):
+                raise HTTPException(status_code=400, detail="SKU is required")
+            if not data.get("unit"):
+                raise HTTPException(status_code=400, detail="Unit is required")
+            if data.get("selling_price") is None:
+                raise HTTPException(status_code=400, detail="Selling price is required")
+            
+            # Generate barcode if not provided
+            barcode = data.get("barcode")
+            if not barcode:
+                # Generate unique barcode
+                barcode = generate_barcode()
+                # Ensure uniqueness (retry if collision)
+                max_retries = 5
+                for _ in range(max_retries):
+                    existing = await self.get_product_by_barcode(barcode)
+                    if existing is None:
+                        break
+                    barcode = generate_barcode()
+                else:
+                    raise HTTPException(
+                        status_code=500,
+                        detail="Failed to generate unique barcode"
+                    )
+            else:
+                # Validate provided barcode
+                if not validate_barcode(barcode):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Invalid barcode format"
+                    )
+                # Check uniqueness
+                existing = await self.get_product_by_barcode(barcode)
+                if existing:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Barcode already exists"
+                    )
+            
+            # Prepare product data
+            product_data = {
+                "name": data["name"],
+                "sku": data["sku"],
+                "barcode": barcode,
+                "unit": data["unit"],
+                "mrp": data.get("mrp"),
+                "selling_price": float(data["selling_price"]),
+                "tax_rate": float(data.get("tax_rate", 0))
+            }
+            
+            # Insert product
+            response = supabase.table("products") \
+                .insert(product_data) \
+                .execute()
+            
+            if not response.data:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to create product"
+                )
+            
+            product = response.data[0]
+            
+            # Initialize inventory balance to 0
+            supabase.table("inventory_balance") \
+                .insert({
+                    "product_id": product["id"],
+                    "qty_on_hand": 0
+                }) \
+                .execute()
+            
+            product["qty_on_hand"] = 0.0
+            
+            return {"success": True, "product": product}
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error creating product: {str(e)}"
+            )

@@ -1,34 +1,154 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { PackageCheck, AlertTriangle, PackageX, TrendingUp, Scan, Plus, Search, Edit, ShoppingCart } from 'lucide-react'
 import AddProductModal from './AddProductModal'
 
 interface Product {
+  id: string
   name: string
-  price: number
-  initial: string
+  sku: string
+  unit: string
+  selling_price: number
+  qty_on_hand: number
   category?: string
-  sku?: string
-  stock?: number
-  minLevel?: number
 }
 
 interface InventoryProps {
-  products: Product[]
-  onAddProduct: (product: Product) => void
+  // No props needed - fetches from API
 }
 
-export default function Inventory({ products, onAddProduct }: InventoryProps) {
+export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  const [inventoryData, setInventoryData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [addingStock, setAddingStock] = useState<string | null>(null)
+  const [stockQuantity, setStockQuantity] = useState<Record<string, string>>({})
+
+  // Fetch products and inventory on mount
+  useEffect(() => {
+    fetchInventory()
+  }, [])
+
+  const fetchInventory = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Fetch inventory data (includes products with stock)
+      const response = await fetch('/api/inventory')
+      if (!response.ok) {
+        throw new Error(`Failed to fetch inventory: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      setInventoryData(data)
+      setProducts(data.products || [])
+    } catch (err: any) {
+      setError(err.message || 'Failed to load inventory')
+      console.error('Error fetching inventory:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddProduct = async (productData: any) => {
+    try {
+      // Map frontend product data to backend format
+      const backendProduct = {
+        name: productData.name,
+        sku: productData.sku || `SKU-${Date.now()}`,
+        unit: productData.unit || 'piece',
+        selling_price: productData.price,
+        mrp: productData.price,
+        tax_rate: 0,
+        barcode: productData.barcode || undefined
+      }
+
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(backendProduct),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || `Failed to create product: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      
+      // If initial stock was provided, add it
+      if (productData.stock && productData.stock > 0) {
+        await addStock(result.product.id, productData.stock)
+      }
+
+      // Refresh inventory
+      await fetchInventory()
+      setIsAddModalOpen(false)
+    } catch (err: any) {
+      setError(err.message || 'Failed to add product')
+      console.error('Error adding product:', err)
+      alert(err.message || 'Failed to add product')
+    }
+  }
+
+  const addStock = async (productId: string, quantity: number) => {
+    try {
+      const response = await fetch('/api/inventory/stock-in', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: quantity,
+          reason: 'PURCHASE',
+          notes: 'Initial stock'
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || `Failed to add stock: ${response.statusText}`)
+      }
+
+      // Refresh inventory after adding stock
+      await fetchInventory()
+    } catch (err: any) {
+      throw err
+    }
+  }
+
+  const handleAddStockClick = async (productId: string) => {
+    const qty = parseFloat(stockQuantity[productId] || '0')
+    if (qty <= 0) {
+      alert('Please enter a valid quantity')
+      return
+    }
+
+    try {
+      setAddingStock(productId)
+      await addStock(productId, qty)
+      setStockQuantity({ ...stockQuantity, [productId]: '' })
+    } catch (err: any) {
+      alert(err.message || 'Failed to add stock')
+    } finally {
+      setAddingStock(null)
+    }
+  }
 
   // Process products for inventory display
   const inventoryProducts = useMemo(() => {
     return products.map((product) => {
-      const stock = product.stock || 0
-      const minLevel = product.minLevel || 10
+      const stock = product.qty_on_hand || 0
+      const minLevel = 10 // Default minimum level
       let status = 'Good Stock'
       let forecast = 'Stable'
       let forecastIcon = TrendingUp
@@ -60,7 +180,8 @@ export default function Inventory({ products, onAddProduct }: InventoryProps) {
         forecast,
         forecastIcon,
         stockWarning,
-        stockDanger
+        stockDanger,
+        price: product.selling_price
       }
     })
   }, [products])
@@ -83,6 +204,38 @@ export default function Inventory({ products, onAddProduct }: InventoryProps) {
     
     return { inStock, lowStock, critical, stockValue }
   }, [inventoryProducts])
+
+  if (loading) {
+    return (
+      <section className="animate-fade-in">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-gray-500">Loading inventory...</div>
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="animate-fade-in">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertTriangle className="w-5 h-5" />
+            <div>
+              <div className="font-semibold">Error loading inventory</div>
+              <div className="text-sm">{error}</div>
+            </div>
+          </div>
+          <button
+            onClick={fetchInventory}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="animate-fade-in">
@@ -183,62 +336,89 @@ export default function Inventory({ products, onAddProduct }: InventoryProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product, index) => {
-                const ForecastIcon = product.forecastIcon
-                return (
-                  <tr
-                    key={product.sku}
-                    className="border-t border-gray-200 transition-all cursor-pointer hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
-                      <div className="flex items-center gap-2 sm:gap-4">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">
-                          {product.name[0]}
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-gray-500">
+                    No products found
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((product) => {
+                  const ForecastIcon = product.forecastIcon
+                  return (
+                    <tr
+                      key={product.id}
+                      className="border-t border-gray-200 transition-all cursor-pointer hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                      <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">
+                            {product.name[0]}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-primary truncate">{product.name}</div>
+                            <div className="text-[10px] sm:text-xs text-gray-500">SKU: {product.sku}</div>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <div className="font-semibold text-primary truncate">{product.name}</div>
-                          <div className="text-[10px] sm:text-xs text-gray-500">SKU: {product.sku}</div>
+                      </td>
+                      <td className="p-3 sm:p-4 text-xs sm:text-sm">{product.category || '-'}</td>
+                      <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                        <span className={`font-semibold ${
+                          product.stockWarning ? 'text-warning' : product.stockDanger ? 'text-danger' : 'text-primary'
+                        }`}>
+                          {product.stock} {product.unit}
+                        </span>
+                      </td>
+                      <td className="p-3 sm:p-4 text-xs sm:text-sm">{product.minLevel}</td>
+                      <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                        <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap ${
+                          product.status === 'Good Stock'
+                            ? 'bg-green-100 text-green-700'
+                            : product.status === 'Low Stock'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}>
+                          {product.status}
+                        </span>
+                      </td>
+                      <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                        <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-600 whitespace-nowrap">
+                          <ForecastIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                          {product.forecast}
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-3 sm:p-4 text-xs sm:text-sm">{product.category}</td>
-                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
-                      <span className={`font-semibold ${
-                        product.stockWarning ? 'text-warning' : product.stockDanger ? 'text-danger' : 'text-primary'
-                      }`}>
-                        {product.stock}
-                      </span>
-                    </td>
-                    <td className="p-3 sm:p-4 text-xs sm:text-sm">{product.minLevel}</td>
-                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
-                      <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap ${
-                        product.status === 'Good Stock'
-                          ? 'bg-green-100 text-green-700'
-                          : product.status === 'Low Stock'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}>
-                        {product.status}
-                      </span>
-                    </td>
-                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
-                      <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-600 whitespace-nowrap">
-                        <ForecastIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                        {product.forecast}
-                      </div>
-                    </td>
-                    <td className="p-3 sm:p-4 text-xs sm:text-sm">
-                      <button className="w-7 h-7 sm:w-8 sm:h-8 border-none bg-gray-100 rounded-md cursor-pointer flex items-center justify-center transition-all hover:bg-primary hover:text-secondary hover:scale-110">
-                        {product.status === 'Critical' || product.status === 'Low Stock' ? (
-                          <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        ) : (
-                          <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        )}
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
+                      </td>
+                      <td className="p-3 sm:p-4 text-xs sm:text-sm">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Qty"
+                            value={stockQuantity[product.id] || ''}
+                            onChange={(e) => setStockQuantity({ ...stockQuantity, [product.id]: e.target.value })}
+                            className="w-16 px-2 py-1 border border-gray-300 rounded text-xs"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAddStockClick(product.id)
+                            }}
+                            disabled={addingStock === product.id}
+                            className="w-7 h-7 sm:w-8 sm:h-8 border-none bg-primary text-secondary rounded-md cursor-pointer flex items-center justify-center transition-all hover:scale-110 disabled:opacity-50"
+                          >
+                            {addingStock === product.id ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -248,9 +428,8 @@ export default function Inventory({ products, onAddProduct }: InventoryProps) {
       <AddProductModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onAdd={onAddProduct}
+        onAdd={handleAddProduct}
       />
     </section>
   )
 }
-

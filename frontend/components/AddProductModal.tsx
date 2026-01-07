@@ -11,6 +11,8 @@ interface Product {
   category?: string
   stock?: number
   minLevel?: number
+  unit?: string
+  barcode?: string
 }
 
 interface AddProductModalProps {
@@ -65,8 +67,9 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
       initial,
       category: formData.category.trim(),
       sku: formData.sku.trim() || `SKU-${Date.now()}`,
-      stock: formData.stock ? parseInt(formData.stock) : 0,
-      minLevel: formData.minLevel ? parseInt(formData.minLevel) : 10
+      stock: formData.stock ? parseFloat(formData.stock) : 0,
+      minLevel: formData.minLevel ? parseInt(formData.minLevel) : 10,
+      unit: 'piece' // Default unit, can be made configurable later
     }
 
     onAdd(product)
@@ -81,7 +84,7 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
       minLevel: ''
     })
     setErrors({})
-    onClose()
+    // Don't close here - let parent handle success/error
   }
 
   const handleClose = () => {

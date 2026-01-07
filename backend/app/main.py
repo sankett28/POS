@@ -16,9 +16,11 @@ app = FastAPI(title="Retail Boss API", version="1.0.0")
 init_db()
 
 # CORS middleware
+# Parse comma-separated CORS_ORIGINS string into list
+cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")] if settings.CORS_ORIGINS else []
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
