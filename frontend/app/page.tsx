@@ -9,6 +9,7 @@ import Billing from '@/components/Billing'
 import VoiceAI from '@/components/VoiceAI'
 import Analytics from '@/components/Analytics'
 import Profile from '@/components/Profile'
+import Outreach from '@/components/Outreach'
 import NotificationPanel from '@/components/NotificationPanel'
 import SuccessModal from '@/components/SuccessModal'
 
@@ -108,6 +109,7 @@ export default function Home() {
           />
         )}
         {activeSection === 'voice' && <VoiceAI />}
+        {activeSection === 'outreach' && <Outreach />}
         {activeSection === 'analytics' && <Analytics />}
         {activeSection === 'profile' && <Profile onLogout={handleLogout} />}
       </main>
@@ -119,7 +121,7 @@ export default function Home() {
       
       <SuccessModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => setIsModalOpen(false)} 
         billData={billData}
         invoiceNumber={invoiceNumber}
       />

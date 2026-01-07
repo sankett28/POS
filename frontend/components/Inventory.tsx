@@ -171,8 +171,8 @@ export default function Inventory({ products, onAddProduct }: InventoryProps) {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse min-w-[800px]">
-            <thead className="bg-gray-50">
-              <tr>
+          <thead className="bg-gray-50">
+            <tr>
                 <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Product</th>
                 <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Category</th>
                 <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Stock</th>
@@ -180,68 +180,68 @@ export default function Inventory({ products, onAddProduct }: InventoryProps) {
                 <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Status</th>
                 <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">AI Forecast</th>
                 <th className="p-3 sm:p-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((product, index) => {
-                const ForecastIcon = product.forecastIcon
-                return (
-                  <tr
-                    key={product.sku}
-                    className="border-t border-gray-200 transition-all cursor-pointer hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99]"
-                  >
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProducts.map((product, index) => {
+              const ForecastIcon = product.forecastIcon
+              return (
+                <tr
+                  key={product.sku}
+                  className="border-t border-gray-200 transition-all cursor-pointer hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99]"
+                >
                     <td className="p-3 sm:p-4 text-xs sm:text-sm">
                       <div className="flex items-center gap-2 sm:gap-4">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">
-                          {product.name[0]}
-                        </div>
+                        {product.name[0]}
+                      </div>
                         <div className="min-w-0">
                           <div className="font-semibold text-primary truncate">{product.name}</div>
                           <div className="text-[10px] sm:text-xs text-gray-500">SKU: {product.sku}</div>
-                        </div>
                       </div>
-                    </td>
+                    </div>
+                  </td>
                     <td className="p-3 sm:p-4 text-xs sm:text-sm">{product.category}</td>
                     <td className="p-3 sm:p-4 text-xs sm:text-sm">
-                      <span className={`font-semibold ${
-                        product.stockWarning ? 'text-warning' : product.stockDanger ? 'text-danger' : 'text-primary'
-                      }`}>
-                        {product.stock}
-                      </span>
-                    </td>
+                    <span className={`font-semibold ${
+                      product.stockWarning ? 'text-warning' : product.stockDanger ? 'text-danger' : 'text-primary'
+                    }`}>
+                      {product.stock}
+                    </span>
+                  </td>
                     <td className="p-3 sm:p-4 text-xs sm:text-sm">{product.minLevel}</td>
                     <td className="p-3 sm:p-4 text-xs sm:text-sm">
                       <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap ${
-                        product.status === 'Good Stock'
-                          ? 'bg-green-100 text-green-700'
-                          : product.status === 'Low Stock'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}>
-                        {product.status}
-                      </span>
-                    </td>
+                      product.status === 'Good Stock'
+                        ? 'bg-green-100 text-green-700'
+                        : product.status === 'Low Stock'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {product.status}
+                    </span>
+                  </td>
                     <td className="p-3 sm:p-4 text-xs sm:text-sm">
                       <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-600 whitespace-nowrap">
                         <ForecastIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                        {product.forecast}
-                      </div>
-                    </td>
+                      {product.forecast}
+                    </div>
+                  </td>
                     <td className="p-3 sm:p-4 text-xs sm:text-sm">
                       <button className="w-7 h-7 sm:w-8 sm:h-8 border-none bg-gray-100 rounded-md cursor-pointer flex items-center justify-center transition-all hover:bg-primary hover:text-secondary hover:scale-110">
-                        {product.status === 'Critical' || product.status === 'Low Stock' ? (
+                      {product.status === 'Critical' || product.status === 'Low Stock' ? (
                           <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        ) : (
+                      ) : (
                           <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        )}
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                      )}
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
       </div>
 
       {/* Add Product Modal */}

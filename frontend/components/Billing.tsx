@@ -129,22 +129,22 @@ export default function Billing({ products, onComplete }: BillingProps) {
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               {filteredProducts.map((product) => (
-                <div
-                  key={product.name}
+              <div
+                key={product.name}
                   onClick={() => {
                     addToBill(product.name, product.price)
                     setSearchTerm('') // Clear search after adding product
                   }}
                   className="bg-gray-50 border border-gray-200 rounded-md p-3 sm:p-4 text-center cursor-pointer transition-all hover:bg-primary hover:text-secondary hover:border-primary hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg relative overflow-hidden group"
-                >
+              >
                   <div className="w-[50px] h-[50px] sm:w-[60px] sm:h-[60px] rounded-md bg-primary text-secondary flex items-center justify-center font-bold text-xl sm:text-2xl mx-auto mb-2 group-hover:bg-secondary group-hover:text-primary">
-                    {product.initial}
-                  </div>
+                  {product.initial}
+                </div>
                   <div className="font-semibold text-xs sm:text-sm mb-1">{product.name}</div>
                   <div className="font-bold text-sm sm:text-base text-primary group-hover:text-secondary">₹{product.price}</div>
-                </div>
-              ))}
-            </div>
+              </div>
+            ))}
+          </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-gray-400">
               <Search className="w-12 h-12 sm:w-16 sm:h-16 mb-4 opacity-50" />

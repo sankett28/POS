@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Store, LayoutDashboard, Package, Receipt, Mic, TrendingUp, Bell, UserCircle, Menu, X } from 'lucide-react'
+import { Store, LayoutDashboard, Package, Receipt, Mic, TrendingUp, Bell, UserCircle, Menu, X, Rocket } from 'lucide-react'
 
 interface NavbarProps {
   activeSection: string
@@ -18,6 +18,7 @@ export default function Navbar({ activeSection, setActiveSection, onNotification
     { id: 'inventory', label: 'Inventory', icon: Package },
     { id: 'billing', label: 'Billing', icon: Receipt },
     { id: 'voice', label: 'Voice AI', icon: Mic },
+    { id: 'outreach', label: 'Outreach', icon: Rocket },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
   ]
 
@@ -36,42 +37,42 @@ export default function Navbar({ activeSection, setActiveSection, onNotification
             <Store className="w-5 h-5 sm:w-7 sm:h-7" />
             <span className="hidden sm:inline">Retail Boss</span>
             <span className="bg-primary text-secondary px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wide">
-              AI-Powered
-            </span>
-          </div>
-          
+            AI-Powered
+          </span>
+        </div>
+        
           {/* Desktop Navigation */}
           <div className="hidden md:flex gap-2 flex-wrap">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <button
-                  key={item.id}
+          {navItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <button
+                key={item.id}
                   onClick={() => handleNavClick(item.id)}
                   className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-md font-medium transition-all text-sm lg:text-base ${
-                    activeSection === item.id
-                      ? 'bg-primary text-secondary'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-primary'
-                  }`}
-                >
-                  <Icon className="w-[18px] h-[18px]" />
-                  {item.label}
-                </button>
-              )
-            })}
-          </div>
-          
+                  activeSection === item.id
+                    ? 'bg-primary text-secondary'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-primary'
+                }`}
+              >
+                <Icon className="w-[18px] h-[18px]" />
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
+        
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={onNotificationClick}
+          <button
+            onClick={onNotificationClick}
               className="relative w-9 h-9 sm:w-10 sm:h-10 border-none bg-gray-100 rounded-md cursor-pointer flex items-center justify-center transition-all hover:bg-gray-200 hover:scale-105"
-            >
+          >
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-danger text-white w-5 h-5 sm:w-5 sm:h-5 rounded-full text-[10px] sm:text-xs font-semibold flex items-center justify-center border-2 border-white shadow-sm">
-                3
-              </span>
-            </button>
+              3
+            </span>
+          </button>
             <button 
               onClick={onProfileClick}
               className={`hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 border-none rounded-md cursor-pointer items-center justify-center transition-all hover:scale-105 overflow-hidden ${
@@ -137,9 +138,9 @@ export default function Navbar({ activeSection, setActiveSection, onNotification
                   : 'text-gray-600 hover:bg-gray-100 hover:text-primary'
               }`}
             >
-              <UserCircle className="w-5 h-5" />
+            <UserCircle className="w-5 h-5" />
               Profile
-            </button>
+          </button>
           </div>
         </div>
       </div>
