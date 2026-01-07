@@ -1,6 +1,4 @@
 from pydantic_settings import BaseSettings
-from typing import List
-
 class Settings(BaseSettings):
     # Supabase Configuration
     SUPABASE_URL: str = ""
@@ -8,7 +6,7 @@ class Settings(BaseSettings):
     
     # API Configuration
     API_V1_STR: str = "/api"
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
+    CORS_ORIGINS: str = "http://localhost:3000"
     
     # App Configuration
     APP_NAME: str = "Retail Boss API"

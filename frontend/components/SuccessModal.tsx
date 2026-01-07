@@ -12,20 +12,23 @@ interface BillItem {
 interface SuccessModalProps {
   isOpen: boolean
   onClose: () => void
-  billData?: {
-    billItems: BillItem[]
-    subtotal: number
-    gst: number
-    total: number
-    paymentMethod: string
-  }
+  billData?: any // Backend bill response
   invoiceNumber?: string
 }
 
-export default function SuccessModal({ isOpen, onClose, billData, invoiceNumber = 'INV-2025-001' }: SuccessModalProps) {
+export default function SuccessModal({ isOpen, onClose, billData, invoiceNumber }: SuccessModalProps) {
 
   const handlePrint = () => {
     if (!billData) return
+    
+    // Extract bill data from backend response
+    const bill = billData.bill || billData
+    const items = bill.items || []
+    const billNumber = invoiceNumber || bill.bill_number || ''
+    const paymentMode = bill.payment_mode || 'cash'
+    const subtotal = bill.subtotal || 0
+    const taxAmount = bill.tax_amount || 0
+    const total = bill.total || 0
     
     // Create a new window for printing
     const printWindow = window.open('', '_blank')
@@ -35,7 +38,7 @@ export default function SuccessModal({ isOpen, onClose, billData, invoiceNumber 
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Invoice ${invoiceNumber}</title>
+          <title>Invoice ${billNumber}</title>
           <style>
             * {
               margin: 0;
@@ -193,7 +196,7 @@ export default function SuccessModal({ isOpen, onClose, billData, invoiceNumber 
               </div>
               <div class="invoice-number">
                 <p>Invoice Number</p>
-                <p>${invoiceNumber}</p>
+                <p>${billNumber}</p>
               </div>
             </div>
             <div class="details">
@@ -203,7 +206,7 @@ export default function SuccessModal({ isOpen, onClose, billData, invoiceNumber 
               </div>
               <div class="detail-item">
                 <p>Payment Method</p>
-                <p>${billData.paymentMethod}</p>
+                <p>${paymentMode.toUpperCase()}</p>
               </div>
             </div>
             <table>
@@ -216,12 +219,12 @@ export default function SuccessModal({ isOpen, onClose, billData, invoiceNumber 
                 </tr>
               </thead>
               <tbody>
-                ${billData.billItems.map((item: any) => `
+                ${items.map((item: any) => `
                   <tr>
-                    <td>${item.name}</td>
+                    <td>${item.product_name || item.name}</td>
                     <td>${item.quantity}</td>
-                    <td>₹${item.price}</td>
-                    <td>₹${item.total}</td>
+                    <td>₹${item.unit_price || item.price}</td>
+                    <td>₹${item.line_total || item.total}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -230,15 +233,15 @@ export default function SuccessModal({ isOpen, onClose, billData, invoiceNumber 
               <div class="totals-inner">
                 <div class="total-row">
                   <span>Subtotal:</span>
-                  <span>₹${billData.subtotal}</span>
+                  <span>₹${subtotal}</span>
                 </div>
                 <div class="total-row">
-                  <span>GST (5%):</span>
-                  <span>₹${billData.gst}</span>
+                  <span>Tax:</span>
+                  <span>₹${taxAmount}</span>
                 </div>
                 <div class="total-row">
                   <span>Total:</span>
-                  <span>₹${billData.total}</span>
+                  <span>₹${total}</span>
                 </div>
               </div>
             </div>
@@ -290,7 +293,9 @@ export default function SuccessModal({ isOpen, onClose, billData, invoiceNumber 
             <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-green-700" />
           </div>
           <h3 className="text-xl sm:text-2xl font-semibold text-primary mb-2">Bill Generated Successfully!</h3>
-          <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Invoice #{invoiceNumber} created</p>
+          <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
+            Invoice #{invoiceNumber || (billData?.bill?.bill_number || billData?.bill_number || 'N/A')} created
+          </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <button
               onClick={onClose}
