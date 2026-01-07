@@ -1,4 +1,4 @@
-from app.core.db import supabase
+from app.core import db
 from typing import Dict, Any, List
 from fastapi import HTTPException
 from decimal import Decimal
@@ -17,7 +17,19 @@ class InventoryService:
         Returns:
             Dictionary with inventory stats and product list
         """
-        if supabase is None:
+        # Check if database is available
+        try:
+            if db.supabase is None:
+                return {
+                    "stats": {
+                        "inStock": 0,
+                        "lowStock": 0,
+                        "stockValue": 0
+                    },
+                    "products": []
+                }
+        except AttributeError:
+            # db.supabase doesn't exist yet (module not fully initialized)
             return {
                 "stats": {
                     "inStock": 0,
@@ -29,22 +41,38 @@ class InventoryService:
         
         try:
             # Get all products with their balances
-            products_response = supabase.table("products")\
+            products_response = db.supabase.table("products")\
                 .select("id, name, sku, unit, selling_price")\
                 .execute()
+            
+            if products_response.error:
+                print(f"Error fetching products: {products_response.error}")
+                return {
+                    "stats": {
+                        "inStock": 0,
+                        "lowStock": 0,
+                        "stockValue": 0
+                    },
+                    "products": []
+                }
             
             products = products_response.data if products_response.data else []
             
             # Get balances for all products
-            balance_response = supabase.table("inventory_balance")\
+            balance_response = db.supabase.table("inventory_balance")\
                 .select("product_id, qty_on_hand")\
                 .execute()
             
-            # Create balance lookup
-            balance_map = {
-                item["product_id"]: float(item["qty_on_hand"])
-                for item in (balance_response.data if balance_response.data else [])
-            }
+            if balance_response.error:
+                print(f"Error fetching inventory balance: {balance_response.error}")
+                # Continue with empty balance map if balance fetch fails
+                balance_map = {}
+            else:
+                # Create balance lookup
+                balance_map = {
+                    item["product_id"]: float(item["qty_on_hand"])
+                    for item in (balance_response.data if balance_response.data else [])
+                }
             
             # Format products with stock info
             formatted_products = []
@@ -84,10 +112,18 @@ class InventoryService:
             }
             
         except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error fetching inventory: {str(e)}"
-            )
+            # Log error but return empty data instead of crashing
+            print(f"Error fetching inventory: {e}")
+            import traceback
+            traceback.print_exc()
+            return {
+                "stats": {
+                    "inStock": 0,
+                    "lowStock": 0,
+                    "stockValue": 0
+                },
+                "products": []
+            }
     
     async def add_stock(self, data: dict) -> Dict[str, Any]:
         """
@@ -104,7 +140,7 @@ class InventoryService:
         Returns:
             Success response with ledger entry
         """
-        if supabase is None:
+        if db.supabase is None:
             raise HTTPException(status_code=503, detail="Database not available")
         
         try:
@@ -127,7 +163,7 @@ class InventoryService:
                 )
             
             # Verify product exists
-            product_response = supabase.table("products")\
+            product_response = db.supabase.table("products")\
                 .select("id")\
                 .eq("id", product_id)\
                 .execute()
@@ -144,7 +180,7 @@ class InventoryService:
                 "notes": notes
             }
             
-            ledger_response = supabase.table("inventory_ledger")\
+            ledger_response = db.supabase.table("inventory_ledger")\
                 .insert(ledger_data)\
                 .execute()
             
@@ -156,7 +192,7 @@ class InventoryService:
             
             # Balance is updated automatically by trigger
             # Fetch updated balance
-            balance_response = supabase.table("inventory_balance")\
+            balance_response = db.supabase.table("inventory_balance")\
                 .select("qty_on_hand")\
                 .eq("product_id", product_id)\
                 .execute()
@@ -189,7 +225,7 @@ class InventoryService:
         Returns:
             Success response
         """
-        if supabase is None:
+        if db.supabase is None:
             raise HTTPException(status_code=503, detail="Database not available")
         
         try:
@@ -203,7 +239,7 @@ class InventoryService:
                 raise HTTPException(status_code=400, detail="quantity is required")
             
             # Verify product exists
-            product_response = supabase.table("products")\
+            product_response = db.supabase.table("products")\
                 .select("id")\
                 .eq("id", product_id)\
                 .execute()
@@ -213,7 +249,7 @@ class InventoryService:
             
             # Check if adjustment would result in negative stock
             if quantity < 0:
-                balance_response = supabase.table("inventory_balance")\
+                balance_response = db.supabase.table("inventory_balance")\
                     .select("qty_on_hand")\
                     .eq("product_id", product_id)\
                     .execute()
@@ -237,7 +273,7 @@ class InventoryService:
                 "notes": notes
             }
             
-            ledger_response = supabase.table("inventory_ledger")\
+            ledger_response = db.supabase.table("inventory_ledger")\
                 .insert(ledger_data)\
                 .execute()
             
@@ -248,7 +284,7 @@ class InventoryService:
                 )
             
             # Fetch updated balance
-            balance_response = supabase.table("inventory_balance")\
+            balance_response = db.supabase.table("inventory_balance")\
                 .select("qty_on_hand")\
                 .eq("product_id", product_id)\
                 .execute()

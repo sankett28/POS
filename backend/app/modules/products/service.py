@@ -1,4 +1,4 @@
-from app.core.db import supabase
+from app.core import db
 from app.utils.barcode import generate_barcode, validate_barcode
 from typing import Dict, Any, Optional, List
 from fastapi import HTTPException
@@ -16,12 +16,12 @@ class ProductService:
         Returns:
             Dictionary with products list
         """
-        if supabase is None:
+        if db.supabase is None:
             return {"products": []}
 
         try:
             # Query all products ordered by name
-            response = supabase.table("products") \
+            response = db.supabase.table("products") \
                 .select("*") \
                 .order("name") \
                 .execute()
@@ -31,7 +31,7 @@ class ProductService:
             # Join with inventory balance for current stock
             for product in products:
                 product_id = product["id"]
-                balance_response = supabase.table("inventory_balance") \
+                balance_response = db.supabase.table("inventory_balance") \
                     .select("qty_on_hand") \
                     .eq("product_id", product_id) \
                     .execute()
@@ -59,11 +59,11 @@ class ProductService:
         Returns:
             Product dictionary or None if not found
         """
-        if supabase is None:
+        if db.supabase is None:
             return None
         
         try:
-            response = supabase.table("products") \
+            response = db.supabase.table("products") \
                 .select("*") \
                 .eq("id", product_id) \
                 .execute()
@@ -74,7 +74,7 @@ class ProductService:
             product = response.data[0]
             
             # Get current stock
-            balance_response = supabase.table("inventory_balance") \
+            balance_response = db.supabase.table("inventory_balance") \
                 .select("qty_on_hand") \
                 .eq("product_id", product_id) \
                 .execute()
@@ -102,11 +102,11 @@ class ProductService:
         Returns:
             Product dictionary or None if not found
         """
-        if supabase is None:
+        if db.supabase is None:
             return None
         
         try:
-            response = supabase.table("products") \
+            response = db.supabase.table("products") \
                 .select("*") \
                 .eq("barcode", barcode) \
                 .execute()
@@ -118,7 +118,7 @@ class ProductService:
             
             # Get current stock
             product_id = product["id"]
-            balance_response = supabase.table("inventory_balance") \
+            balance_response = db.supabase.table("inventory_balance") \
                 .select("qty_on_hand") \
                 .eq("product_id", product_id) \
                 .execute()
@@ -151,7 +151,7 @@ class ProductService:
         Returns:
             Created product dictionary
         """
-        if supabase is None:
+        if db.supabase is None:
             raise HTTPException(status_code=503, detail="Database not available")
         
         try:
@@ -209,20 +209,21 @@ class ProductService:
             }
             
             # Insert product
-            response = supabase.table("products") \
-                .insert(product_data) \
-                .execute()
-            
-            if not response.data:
+            response = db.supabase.table("products").insert(product_data).execute()
+
+            if response.error:
+                # Log the REAL Supabase error
+                print("Supabase insert error:", response.error)
+
                 raise HTTPException(
                     status_code=500,
-                    detail="Failed to create product"
+                    detail=response.error.message
                 )
-            
+
             product = response.data[0]
             
             # Initialize inventory balance to 0
-            supabase.table("inventory_balance") \
+            db.supabase.table("inventory_balance") \
                 .insert({
                     "product_id": product["id"],
                     "qty_on_hand": 0

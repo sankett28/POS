@@ -1,5 +1,5 @@
 from datetime import datetime
-from app.core.db import supabase
+from app.core import db
 from typing import Optional
 
 def generate_bill_number() -> str:
@@ -17,7 +17,7 @@ def generate_bill_number() -> str:
     Returns:
         Unique bill number string
     """
-    if supabase is None:
+    if db.supabase is None:
         # Mock mode: use timestamp
         timestamp = int(datetime.now().timestamp() * 1000) % 10000
         return f"BILL-{datetime.now().strftime('%Y%m%d')}-{str(timestamp).zfill(4)}"
@@ -29,7 +29,7 @@ def generate_bill_number() -> str:
         
         # Find the highest sequence number for today
         # Query for bills starting with today's prefix
-        response = supabase.table("sales_bill")\
+        response = db.supabase.table("sales_bill")\
             .select("bill_number")\
             .like("bill_number", f"{bill_prefix}%")\
             .order("bill_number", desc=True)\

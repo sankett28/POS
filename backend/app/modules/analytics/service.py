@@ -1,10 +1,10 @@
-from app.core.db import supabase
+from app.core import db
 from typing import Dict, Any
 
 class AnalyticsService:
     async def get_analytics(self) -> Dict[str, Any]:
         """Get analytics data"""
-        if supabase is None:
+        if db.supabase is None:
             # Return mock data
             return {
                 "forecast": {

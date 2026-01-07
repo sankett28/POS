@@ -5,14 +5,12 @@ import { X, Package, DollarSign, Hash, Tag, AlertCircle } from 'lucide-react'
 
 interface Product {
   name: string
-  price: number
-  initial: string
+  selling_price: number
   sku?: string
-  category?: string
-  stock?: number
-  minLevel?: number
-  unit?: string
-  barcode?: string
+  barcode?: string | null
+  unit: string
+  mrp?: number | null
+  tax_rate?: number
 }
 
 interface AddProductModalProps {
@@ -24,11 +22,12 @@ interface AddProductModalProps {
 export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    price: '',
-    category: '',
+    selling_price: '',
     sku: '',
-    stock: '',
-    minLevel: ''
+    barcode: '',
+    unit: 'piece',
+    mrp: '',
+    tax_rate: '0'
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -41,14 +40,22 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
       newErrors.name = 'Product name is required'
     }
 
-    if (!formData.price || parseFloat(formData.price) <= 0) {
-      newErrors.price = 'Valid price is required'
+    if (!formData.selling_price || parseFloat(formData.selling_price) <= 0) {
+      newErrors.selling_price = 'Valid selling price is required'
     }
 
-    if (!formData.category.trim()) {
-      newErrors.category = 'Category is required'
+    if (!formData.unit.trim()) {
+      newErrors.unit = 'Unit is required'
     }
 
+    if (formData.mrp && parseFloat(formData.mrp) < 0) {
+      newErrors.mrp = 'MRP cannot be negative'
+    }
+
+    if (formData.tax_rate && (parseFloat(formData.tax_rate) < 0 || parseFloat(formData.tax_rate) > 100)) {
+      newErrors.tax_rate = 'Tax rate must be between 0 and 100'
+    }
+    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -60,16 +67,14 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
       return
     }
 
-    const initial = formData.name.charAt(0).toUpperCase()
     const product: Product = {
       name: formData.name.trim(),
-      price: parseFloat(formData.price),
-      initial,
-      category: formData.category.trim(),
+      selling_price: parseFloat(formData.selling_price),
       sku: formData.sku.trim() || `SKU-${Date.now()}`,
-      stock: formData.stock ? parseFloat(formData.stock) : 0,
-      minLevel: formData.minLevel ? parseInt(formData.minLevel) : 10,
-      unit: 'piece' // Default unit, can be made configurable later
+      barcode: formData.barcode.trim() || null,
+      unit: formData.unit,
+      mrp: formData.mrp ? parseFloat(formData.mrp) : null,
+      tax_rate: formData.tax_rate ? parseFloat(formData.tax_rate) : 0,
     }
 
     onAdd(product)
@@ -77,11 +82,12 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
     // Reset form
     setFormData({
       name: '',
-      price: '',
-      category: '',
+      selling_price: '',
       sku: '',
-      stock: '',
-      minLevel: ''
+      barcode: '',
+      unit: 'piece',
+      mrp: '',
+      tax_rate: '0'
     })
     setErrors({})
     // Don't close here - let parent handle success/error
@@ -90,11 +96,12 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
   const handleClose = () => {
     setFormData({
       name: '',
-      price: '',
-      category: '',
+      selling_price: '',
       sku: '',
-      stock: '',
-      minLevel: ''
+      barcode: '',
+      unit: 'piece',
+      mrp: '',
+      tax_rate: '0'
     })
     setErrors({})
     onClose()
@@ -154,12 +161,12 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
             )}
           </div>
 
-          {/* Price and Category Row */}
+          {/* Selling Price and MRP Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Price */}
+            {/* Selling Price */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Price (₹) <span className="text-danger">*</span>
+                Selling Price (₹) <span className="text-danger">*</span>
               </label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2">
@@ -169,47 +176,41 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  value={formData.selling_price}
+                  onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
                   placeholder="0.00"
                   className={`w-full pl-11 pr-4 py-3 border rounded-md bg-white text-primary text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all ${
-                    errors.price ? 'border-red-300' : 'border-gray-300'
+                    errors.selling_price ? 'border-red-300' : 'border-gray-300'
                   }`}
                 />
               </div>
-              {errors.price && (
+              {errors.selling_price && (
                 <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
-                  {errors.price}
+                  {errors.selling_price}
                 </p>
               )}
             </div>
 
-            {/* Category */}
+            {/* MRP */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Category <span className="text-danger">*</span>
+                MRP (₹) (Optional)
               </label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <Tag className="w-5 h-5 text-gray-400" />
+                  <DollarSign className="w-5 h-5 text-gray-400" />
                 </div>
                 <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="e.g., Groceries, Beverages"
-                  className={`w-full pl-11 pr-4 py-3 border rounded-md bg-white text-primary text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all ${
-                    errors.category ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.mrp}
+                  onChange={(e) => setFormData({ ...formData, mrp: e.target.value })}
+                  placeholder="0.00"
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-md bg-white text-primary text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
-              {errors.category && (
-                <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.category}
-                </p>
-              )}
             </div>
           </div>
 
@@ -232,37 +233,56 @@ export default function AddProductModal({ isOpen, onClose, onAdd }: AddProductMo
             </div>
           </div>
 
-          {/* Stock and Min Level Row */}
+          {/* Barcode and Tax Rate Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Stock */}
+            {/* Barcode */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Initial Stock
+                Barcode (Optional)
               </label>
               <input
-                type="number"
-                min="0"
-                value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                placeholder="0"
+                type="text"
+                value={formData.barcode}
+                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                placeholder="Enter barcode"
                 className="w-full px-4 py-3 border border-gray-300 rounded-md bg-white text-primary text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
 
-            {/* Min Level */}
+            {/* Tax Rate */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Minimum Level
+                Tax Rate (%) (Optional)
               </label>
               <input
                 type="number"
                 min="0"
-                value={formData.minLevel}
-                onChange={(e) => setFormData({ ...formData, minLevel: e.target.value })}
-                placeholder="10"
+                max="100"
+                step="0.01"
+                value={formData.tax_rate}
+                onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
+                placeholder="0"
                 className="w-full px-4 py-3 border border-gray-300 rounded-md bg-white text-primary text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
+          </div>
+
+          {/* Unit selection, replacing Stock and Min Level */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Unit <span className="text-danger">*</span>
+            </label>
+            <select
+              value={formData.unit}
+              onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-md bg-white text-primary text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+            >
+              <option value="piece">Piece</option>
+              <option value="kg">Kilogram (kg)</option>
+              <option value="liter">Liter</option>
+              <option value="gram">Gram</option>
+              <option value="pack">Pack</option>
+            </select>
           </div>
 
           {/* Action Buttons */}

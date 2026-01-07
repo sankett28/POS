@@ -1,11 +1,11 @@
-from app.core.db import supabase
+from app.core import db
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
 
 class NotificationService:
     async def get_notifications(self) -> List[Dict[str, Any]]:
         """Get notifications"""
-        if supabase is None:
+        if db.supabase is None:
             # Return mock data
             return [
                 {
@@ -35,7 +35,7 @@ class NotificationService:
             ]
         
         try:
-            response = supabase.table("notifications").select("*").order("created_at", desc=True).limit(50).execute()
+            response = db.supabase.table("notifications").select("*").order("created_at", desc=True).limit(50).execute()
             notifications = []
             for notif in (response.data if response.data else []):
                 notifications.append({
@@ -52,11 +52,11 @@ class NotificationService:
     
     async def mark_as_read(self, notification_id: int) -> Dict[str, Any]:
         """Mark notification as read"""
-        if supabase is None:
+        if db.supabase is None:
             return {"success": True, "message": "Notification marked as read (mock mode)"}
         
         try:
-            supabase.table("notifications").update({"unread": False}).eq("id", notification_id).execute()
+            db.supabase.table("notifications").update({"unread": False}).eq("id", notification_id).execute()
             return {"success": True, "message": "Notification marked as read"}
         except Exception as e:
             raise Exception(f"Error marking notification as read: {str(e)}")

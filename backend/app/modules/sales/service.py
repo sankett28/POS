@@ -1,4 +1,4 @@
-from app.core.db import supabase
+from app.core import db
 from app.utils.bill_number import generate_bill_number
 from typing import Dict, Any, List
 from fastapi import HTTPException
@@ -19,11 +19,11 @@ class SalesService:
         Returns:
             Dictionary with sales list
         """
-        if supabase is None:
+        if db.supabase is None:
             return {"sales": []}
         
         try:
-            response = supabase.table("sales_bill")\
+            response = db.supabase.table("sales_bill")\
                 .select("*")\
                 .order("created_at", desc=True)\
                 .limit(limit)\
@@ -34,7 +34,7 @@ class SalesService:
             # Get items for each bill
             for sale in sales:
                 bill_id = sale["id"]
-                items_response = supabase.table("sales_bill_items")\
+                items_response = db.supabase.table("sales_bill_items")\
                     .select("*")\
                     .eq("bill_id", bill_id)\
                     .execute()
@@ -59,11 +59,11 @@ class SalesService:
         Returns:
             Bill dictionary with items
         """
-        if supabase is None:
+        if db.supabase is None:
             raise HTTPException(status_code=404, detail="Bill not found")
         
         try:
-            bill_response = supabase.table("sales_bill")\
+            bill_response = db.supabase.table("sales_bill")\
                 .select("*")\
                 .eq("id", bill_id)\
                 .execute()
@@ -111,7 +111,7 @@ class SalesService:
         Returns:
             Created bill dictionary
         """
-        if supabase is None:
+        if db.supabase is None:
             raise HTTPException(status_code=503, detail="Database not available")
         
         items = data.get("items", [])
@@ -139,7 +139,7 @@ class SalesService:
                     raise HTTPException(status_code=400, detail="quantity must be positive")
                 
                 # Fetch product data
-                product_response = supabase.table("products")\
+                product_response = db.supabase.table("products")\
                     .select("*")\
                     .eq("id", product_id)\
                     .execute()
@@ -154,7 +154,7 @@ class SalesService:
                 product_data_map[product_id] = product
                 
                 # Check stock availability
-                balance_response = supabase.table("inventory_balance")\
+                balance_response = db.supabase.table("inventory_balance")\
                     .select("qty_on_hand")\
                     .eq("product_id", product_id)\
                     .execute()
@@ -212,7 +212,7 @@ class SalesService:
                 quantity = float(item["quantity"])
                 
                 # First, verify stock again (double-check)
-                balance_response = supabase.table("inventory_balance")\
+                balance_response = db.supabase.table("inventory_balance")\
                     .select("qty_on_hand")\
                     .eq("product_id", product_id)\
                     .execute()
@@ -230,7 +230,7 @@ class SalesService:
                 # Update balance with optimistic locking
                 new_qty = current_qty - quantity
                 
-                update_response = supabase.table("inventory_balance")\
+                update_response = db.supabase.table("inventory_balance")\
                     .update({"qty_on_hand": new_qty})\
                     .eq("product_id", product_id)\
                     .eq("qty_on_hand", current_qty)\
@@ -252,7 +252,7 @@ class SalesService:
                 "payment_mode": payment_mode
             }
             
-            bill_response = supabase.table("sales_bill")\
+            bill_response = db.supabase.table("sales_bill")\
                 .insert(bill_data)\
                 .execute()
             
@@ -279,7 +279,7 @@ class SalesService:
                     "line_total": item["line_total"]
                 })
             
-            supabase.table("sales_bill_items")\
+            db.supabase.table("sales_bill_items")\
                 .insert(items_to_insert)\
                 .execute()
             
@@ -294,7 +294,7 @@ class SalesService:
                     "notes": f"Sale: {bill_number}"
                 })
             
-            supabase.table("inventory_ledger")\
+            db.supabase.table("inventory_ledger")\
                 .insert(ledger_entries)\
                 .execute()
             
@@ -331,11 +331,11 @@ class SalesService:
         Returns:
             List of bill summaries
         """
-        if supabase is None:
+        if db.supabase is None:
             return []
         
         try:
-            response = supabase.table("sales_bill")\
+            response = db.supabase.table("sales_bill")\
                 .select("id, bill_number, total, created_at")\
                 .order("created_at", desc=True)\
                 .limit(limit)\
@@ -344,7 +344,7 @@ class SalesService:
             bills = []
             for bill in (response.data if response.data else []):
                 # Count items
-                items_response = supabase.table("sales_bill_items")\
+                items_response = db.supabase.table("sales_bill_items")\
                     .select("id")\
                     .eq("bill_id", bill["id"])\
                     .execute()
